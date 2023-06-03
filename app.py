@@ -48,10 +48,6 @@ stripe.api_key = environ.get('STRIPE_API_KEY')
 
 endpoint_secret = environ.get('END_POINT_SECRET')
 
-@app.route('/')
-def index():
-    return jsonify({"message" : "hello, this is server :)"}),200
-
 @app.post('/api/auth/register')
 def api_auth_register():
     requestInfo = request.get_json()
