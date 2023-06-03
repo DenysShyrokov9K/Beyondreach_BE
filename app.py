@@ -281,11 +281,11 @@ def api_chat():
 
         if user_connect['connects'] == 0:
             return jsonify({'message': 'Connects is noth'}), 404
-
+        
+        print(f'data/ai-profiles/{botName}/')
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
-        print('email = ',email)
-        print('botName = ',botName)
+        print(documents)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
 
