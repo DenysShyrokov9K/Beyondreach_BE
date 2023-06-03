@@ -272,9 +272,6 @@ def api_chat():
     if(email != auth_email):
         return jsonify({'message': 'Authrization is faild'}), 404
 
-    print('email = ',email)
-    print('botName = ',botName)
-
     connection = get_connection()
     cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
 
@@ -285,6 +282,9 @@ def api_chat():
         if user_connect['connects'] == 0:
             return jsonify({'message': 'Connects is noth'}), 404
 
+
+        print('email = ',email)
+        print('botName = ',botName)
 
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
