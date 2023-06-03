@@ -362,9 +362,6 @@ def api_chat():
         cur.close()
         connection.close()
         return jsonify({'message': text}), 200
-    except Exception as e:
-        # handle the error here
-        print(f"An error occurred: {str(e)}")
     except:
         return jsonify({'message': "Error message"}), 404
 
