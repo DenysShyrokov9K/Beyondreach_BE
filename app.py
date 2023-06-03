@@ -283,7 +283,7 @@ def api_chat():
             return jsonify({'message': 'Connects is noth'}), 404
         
         print(f'data/ai-profiles/{botName}/')
-        loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
+        loader = DirectoryLoader(f'/data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
         print(documents)
         # Split and diveide text to prepare embeddings
