@@ -282,10 +282,6 @@ def api_chat():
         if user_connect['connects'] == 0:
             return jsonify({'message': 'Connects is noth'}), 404
 
-
-        print('email = ',email)
-        print('botName = ',botName)
-
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
         # Split and diveide text to prepare embeddings
@@ -308,6 +304,9 @@ def api_chat():
         {chat_history}
         Human: {human_input}
         Chatbot:"""
+
+        print('email = ',email)
+        print('botName = ',botName)
 
         prompt = PromptTemplate(
         input_variables=["chat_history", "human_input", "context"], 
