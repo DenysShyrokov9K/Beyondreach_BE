@@ -42,7 +42,8 @@ def get_connection():
 app.config['JWT_SECRET_KEY'] = 'boost-is-the-secret-of-our-app'
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-os.environ["OPENAI_API_KEY"] = environ.get('OPENAI_API_KEY')
+if environ.get('OPENAI_API_KEY') is not None:
+    os.environ["OPENAI_API_KEY"] = environ.get('OPENAI_API_KEY')
 
 stripe.api_key = environ.get('STRIPE_API_KEY')
 
