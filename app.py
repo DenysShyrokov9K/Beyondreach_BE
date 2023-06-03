@@ -284,6 +284,8 @@ def api_chat():
 
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
+        print('email = ',email)
+        print('botName = ',botName)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
 
@@ -304,9 +306,6 @@ def api_chat():
         {chat_history}
         Human: {human_input}
         Chatbot:"""
-
-        print('email = ',email)
-        print('botName = ',botName)
 
         prompt = PromptTemplate(
         input_variables=["chat_history", "human_input", "context"], 
