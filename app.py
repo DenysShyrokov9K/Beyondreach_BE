@@ -283,9 +283,8 @@ def api_chat():
             return jsonify({'message': 'Connects is noth'}), 404
         
         print(f'data/ai-profiles/{botName}/')
-        loader = DirectoryLoader(f'/data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
+        loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
-        print(documents)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
 
@@ -363,6 +362,9 @@ def api_chat():
         cur.close()
         connection.close()
         return jsonify({'message': text}), 200
+    except Exception as e:
+        # handle the error here
+        print(f"An error occurred: {str(e)}")
     except:
         return jsonify({'message': "Error message"}), 404
 
