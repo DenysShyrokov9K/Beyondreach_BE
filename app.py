@@ -217,7 +217,7 @@ def api_webhook():
 
         new_connects = connects + quantity
 
-        cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
+        cursor.execute('UPDATE connects SET customer_id = %s, connects = %s WHERE email = %s', (customer_id, new_connects, email,))
 
         connection.commit()
         cursor.close()
@@ -396,8 +396,9 @@ def api_getChatInfos():
         connection.commit()
         cursor.close()
         connection.close()
-
-        return jsonify({'chat': chat}), 200
+        if chat is not None:
+            return jsonify({'chat': chat}), 200
+        return jsonify({'chat': {}}), 200
     except Exception as e:
         print('Error: '+ str(e))
         return jsonify({'message': 'chat does not exist'}), 404
