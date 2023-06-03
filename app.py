@@ -272,6 +272,9 @@ def api_chat():
     if(email != auth_email):
         return jsonify({'message': 'Authrization is faild'}), 404
 
+    print('email = ',email)
+    print('botName = ',botName)
+
     connection = get_connection()
     cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
 
