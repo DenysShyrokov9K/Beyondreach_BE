@@ -159,7 +159,7 @@ def api_auth_login():
             connection.close()
 
             if user is None:
-                return jsonify({'message': 'Email or Password is wrong'}), 404
+                return jsonify({'message': 'Email or Password is not correct'}), 404
             
             payload = {
                 'email': email
@@ -167,7 +167,7 @@ def api_auth_login():
             token = jwt.encode(payload, 'secret', algorithm='HS256')
             return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
         except: 
-            return jsonify({'message': 'Email or Password is wrong'}), 404
+            return jsonify({'message': 'Email or Password is not correct'}), 404
 
 @app.post('/api/auth/googleLogin')
 def api_auth_googleLogin():
