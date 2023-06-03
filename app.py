@@ -345,13 +345,13 @@ def api_chat():
         connection = get_connection()
         cur = connection.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            'SELECT * FROM chats WHERE email = %s AND botname = %s', (email, botName,))
+            'SELECT * FROM chats WHERE email = %s AND botName = %s', (email, botName,))
         chat = cur.fetchone()
         print("chat = ", chat)
         if chat is None:            
             updated_json_data_string = json.dumps([newMessage])
             print(updated_json_data_string)
-            cur.execute('INSERT INTO chats(email, botname, chats) VALUES (%s, %s, %s) RETURNING *',
+            cur.execute('INSERT INTO chats(email, botName, chats) VALUES (%s, %s, %s) RETURNING *',
                         (email, botName, updated_json_data_string))
             newChat = cur.fetchone()
             print("newChat=", newChat)
@@ -360,7 +360,7 @@ def api_chat():
             chat_content.append(newMessage)
             print(chat_content)
             updated_json_data_string = json.dumps(chat_content)
-            cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botname = %s",
+            cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botName = %s",
                         (updated_json_data_string, email, botName))
         connection.commit()
         cur.close()
@@ -390,7 +390,7 @@ def api_getChatInfos():
     cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
 
     try:
-        cursor.execute('SELECT * FROM chats WHERE email = %s AND botname = %s ', (email,botName))
+        cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName))
         chat = cursor.fetchone()
         print("chats = ", chat)
         connection.commit()
