@@ -311,19 +311,19 @@ def api_getConnectInfo():
 
     headers = request.headers
     bearer = headers.get('Authorization')
-
-    token = bearer.split()[1]
-    decoded = jwt.decode(token, 'secret', algorithms="HS256")
-
-    token_email = decoded['email']
-
-    if(auth_email != token_email):
-        return jsonify({'message': 'Email does not exist'}), 404
-    
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-
     try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        token_email = decoded['email']
+
+        if(auth_email != token_email):
+            return jsonify({'message': 'Email does not exist'}), 404
+        
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+    
         cursor.execute('SELECT * FROM connects WHERE email = %s ', (auth_email,))
         connectInfo = cursor.fetchone()
 
@@ -344,21 +344,21 @@ def api_chat():
     auth_email = requestInfo['email']
     botName = requestInfo['botName']
 
+    print("botName = ",botName)
     headers = request.headers
     bearer = headers.get('Authorization')
-
-    token = bearer.split()[1]
-    decoded = jwt.decode(token, 'secret', algorithms="HS256")
-
-    email = decoded['email']
-
-    if(email != auth_email):
-        return jsonify({'message': 'Authrization is faild'}), 404
-
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-
     try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
         cursor.execute('SELECT * FROM connects WHERE email = %s', (email, ))
         user_connect = cursor.fetchone()
 
@@ -421,7 +421,6 @@ def api_chat():
             "answer": text
         }
 
-        connection = get_connection()
         cur = connection.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
             'SELECT * FROM chats WHERE email = %s AND botName = %s', (email, botName,))
@@ -445,6 +444,10 @@ def api_chat():
         cur.close()
         connection.close()
         return jsonify({'message': text}), 200
+    
+    except Exception as e:
+        print('Error:',str(e))
+        return jsonify({'message': "Error message"}), 404
     except:
         return jsonify({'message': "Error message"}), 404
 
@@ -454,21 +457,22 @@ def api_getChatInfos():
     auth_email = requestInfo['email']
     botName = requestInfo['botName']
 
+    print('botName = ', botName)
+
     headers = request.headers
     bearer = headers.get('Authorization')
-
-    token = bearer.split()[1]
-    decoded = jwt.decode(token, 'secret', algorithms="HS256")
-
-    email = decoded['email']
-
-    if(email != auth_email):
-        return jsonify({'message': 'Authrization is faild'}), 404
-
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-
     try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
         cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName))
         chat = cursor.fetchone()
         print("chats = ", chat)
@@ -503,7 +507,7 @@ def api_sendVerifyEmail():
         from_email='admin@beyondreach.ai',
         to_emails=email,
         subject='Sign in to BeyondReach',
-        html_content = f'<p style="color: #500050;">Hello<br/><br/>We received a request to sign in to Beyondreach using this email address {email}. If you want to sign in to your BeyondReach account, click this link:<br/><br/><a href="https://beyondreach.ai/verify/{token}">Sign in to BeyondReach</a><br/><br/>If you did not request this link, you can safely ignore this email.<br/><br/>Thanks.<br/><br/>Your Beyondreach team.</p>'
+        html_content = f'<p style="color: #500050;">Hello<br/><br/>We received a request to sign in to Beyondreach using this email address {email}. If you want to sign in to your BeyondReach account, click this link:<br/><br/><a href="http://localhost:3000/verify/{token}">Sign in to BeyondReach</a><br/><br/>If you did not request this link, you can safely ignore this email.<br/><br/>Thanks.<br/><br/>Your Beyondreach team.</p>'
     )
     try:
         sg = SendGridAPIClient(api_key=environ.get('SENDGRID_API_KEY'))
