@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, redirect, flash, url_for
+from flask_mail import Mail, Message
 from flask_cors import CORS
 import hashlib
 from os import environ
@@ -6,6 +7,7 @@ from psycopg2 import connect, extras
 import jwt
 import stripe
 import os
+from datetime import datetime, timedelta
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings.cohere import CohereEmbeddings
@@ -22,6 +24,9 @@ from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationSummaryBufferMemory
 import json
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__, static_folder='build')
 
@@ -40,6 +45,11 @@ def get_connection():
     return conection
 
 app.config['JWT_SECRET_KEY'] = 'boost-is-the-secret-of-our-app'
+
+app.config['SENDGRID_API_KEY'] = environ.get('SENDGRID_API_KEY')
+
+mail = Mail(app)
+
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 if environ.get('OPENAI_API_KEY') is not None:
@@ -208,18 +218,18 @@ def api_loginCheck():
 
     headers = request.headers
     bearer = headers.get('Authorization')
-
-    token = bearer.split()[1]
-    decoded = jwt.decode(token, 'secret', algorithms="HS256")
-
-    email = decoded['email']
-
-    if(email != auth_email):
-        return jsonify({'authentication': False}), 404
-
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
     try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'authentication': False}), 404
+
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+    
         cursor.execute('SELECT * FROM users WHERE email = %s', (email, ))
         user = cursor.fetchone()
 
@@ -475,6 +485,86 @@ def api_getChatInfos():
 def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
+@app.post('/api/sendVerifyEmail')
+def api_sendVerifyEmail():
+    requestInfo = request.get_json()
+    email = requestInfo['email']
+
+    # Set an expiration time of 24 hours from now
+    expiry_time = datetime.utcnow() + timedelta(hours=1)
+
+    payload = {
+            'email': email,
+            'expired_time': expiry_time.isoformat()
+        }
+    token = jwt.encode(payload, 'secret', algorithm='HS256')
+    print("token = ", token)
+    message = Mail(
+        from_email='admin@beyondreach.ai',
+        to_emails=email,
+        subject='Sign in to BeyondReach',
+        html_content = f'<p style="color: #500050;">Hello<br/><br/>We received a request to sign in to Promptchan using this email address {email}. If you want to sign in to your BeyondReach account, click this link:<br/><br/><a href="https://beyondreach.ai/verify/{token}">Sign in to BeyondReach</a><br/><br/>If you did not request this link, you can safely ignore this email.<br/><br/>Thanks.<br/><br/>Your Beyondreach team.</p>'
+    )
+    try:
+        sg = SendGridAPIClient(api_key=environ.get('SENDGRID_API_KEY'))
+        # response = sg.send(message)
+        sg.send(message)
+        return jsonify({'status': True}), 200
+    except Exception as e:
+        return jsonify({'status':False}), 404
+    
+@app.post('/api/verify/<token>')
+def verify_token(token):
+    print("token = ",token)
+    try:
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+        expired_time = datetime.fromisoformat(decoded['expired_time'])
+
+        print('expired_time:', expired_time)
+        print('utc_time:', datetime.utcnow())
+        if expired_time < datetime.utcnow():
+            return  jsonify({'message': 'Expired time out'}), 404
+        
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email, ))
+        user = cursor.fetchone()
+        print('user = ', user)
+        if user is not None:
+            payload = {
+                'email': email
+            }
+            token = jwt.encode(payload, 'secret', algorithm='HS256')
+            return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
+
+        cursor.execute('INSERT INTO users(email,password) VALUES (%s, %s) RETURNING *',
+                    (email, create_hash('rmeosmsdjajslrmeosmsdjajsl')))
+        new_created_user = cursor.fetchone()
+        print(new_created_user)
+
+        connection.commit()
+        
+
+        payload = {
+            'email': email
+        }
+        token = jwt.encode(payload, 'secret', algorithm='HS256')
+
+        cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
+                    (email, 10))
+        new_connect_user = cursor.fetchone()
+        print(new_connect_user)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
+
+    except:
+        return jsonify({'message': 'Email already exist'}), 404
+
 # Serve REACT static files
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -483,8 +573,6 @@ def serve(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
-
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000,debug=True, threaded=True)
