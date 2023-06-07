@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, send_from_directory, redirect, flash, url_for
-from flask_mail import Mail, Message
 from flask_cors import CORS
 import hashlib
 from os import environ
@@ -47,8 +46,6 @@ def get_connection():
 app.config['JWT_SECRET_KEY'] = 'boost-is-the-secret-of-our-app'
 
 app.config['SENDGRID_API_KEY'] = environ.get('SENDGRID_API_KEY')
-
-mail = Mail(app)
 
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
