@@ -284,7 +284,7 @@ def api_webhook():
         print("customer_id = ", customer_id)
         print('description = ', invoice['lines']['data'][0]['description'])
         number_pattern = r'\d+'
-        quantity = int(str(re.findall(number_pattern, invoice['lines']['data'][0]['description'])))
+        quantity = int(str(re.findall(number_pattern, invoice['lines']['data'][0]['description'])[0]))
         print(quantity)
 
         cursor.execute('SELECT * FROM connects WHERE email = %s ', (email,))
