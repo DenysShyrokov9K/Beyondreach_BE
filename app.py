@@ -195,7 +195,7 @@ def api_auth_googleLogin():
             connection.commit()
             cursor.close()
             connection.close()
-
+            print('user = ', user)
             if user is None:
                 return jsonify({'message': 'Email does not exist'}), 404
             
