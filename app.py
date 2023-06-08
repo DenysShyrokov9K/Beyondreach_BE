@@ -6,6 +6,7 @@ from psycopg2 import connect, extras
 import jwt
 import stripe
 import os
+import re
 from datetime import datetime, timedelta
 
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -282,7 +283,8 @@ def api_webhook():
         customer_id = invoice['customer']
         print("customer_id = ", customer_id)
 
-        quantity = invoice['lines']['data'][0]['quantity']
+        number_pattern = r'\d+'
+        quantity = int(re.findall(number_pattern, invoice['lines']['data'][0]['description']))
         print(quantity)
 
         cursor.execute('SELECT * FROM connects WHERE email = %s ', (email,))
