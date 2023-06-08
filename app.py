@@ -256,10 +256,10 @@ def api_webhook():
      # Handle the event
     # print("event-----",event)
     charge = session = invoice = customer = None
-    if event['type'] == 'customer.created':
-      customer  = event['data']['object']
-      print("customer  = ",customer )
-    elif event['type'] == 'checkout.session.completed':
+    # if event['type'] == 'customer.created':
+    #   customer  = event['data']['object']
+    #   print("customer  = ",customer )
+    if event['type'] == 'checkout.session.completed':
       session = event['data']['object']
       print("session = ",session)
     elif event['type'] == 'charge.succeeded':
