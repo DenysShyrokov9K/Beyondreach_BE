@@ -370,7 +370,7 @@ def api_chat():
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
         # Split and diveide text to prepare embeddings
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=30)
 
         texts = text_splitter.split_documents(documents)
 
@@ -396,9 +396,9 @@ def api_chat():
 
         llm = OpenAI(model_name='gpt-3.5-turbo',
                 temperature=0.2,
-                max_tokens = 512)
+                max_tokens = 200)
         
-        memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=3000, memory_key="chat_history", input_key="human_input")
+        memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=2000, memory_key="chat_history", input_key="human_input")
 
         if botName not in chain:
             chain[botName] = {}
