@@ -334,7 +334,9 @@ def api_getConnectInfo():
             return jsonify({'info': connectInfo}), 200
     except: 
         return jsonify({'message': 'Email does not exist'}), 404
-    
+
+chain = {}
+
 @app.post('/api/chat')
 def api_chat():
 
@@ -398,14 +400,18 @@ def api_chat():
         
         memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=3000, memory_key="chat_history", input_key="human_input")
 
-        chain = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
+        if botName not in chain:
+            chain[botName] = {}
+
+        if auth_email not in chain[botName]:
+            chain[botName][auth_email] = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
 
         with get_openai_callback() as cb:
             docs = docsearch.similarity_search(query)
-            chain({"input_documents": docs, "human_input": query}, return_only_outputs=True)
+            chain[botName][auth_email]({"input_documents": docs, "human_input": query}, return_only_outputs=True)
             print(cb)
 
-        chain({"input_documents": docs, "human_input": query}, return_only_outputs=True)
+        print("memory = ",chain[botName][auth_email].memory.buffer)
 
         new_connects = user_connect['connects']  - 1
 
@@ -413,7 +419,7 @@ def api_chat():
 
         connection.commit()
 
-        text = chain.memory.buffer[-1].content
+        text = chain[botName][auth_email].memory.buffer[-1].content
 
         newMessage = {
             "question": query,
