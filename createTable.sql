@@ -36,7 +36,8 @@ query = """
         id SERIAL PRIMARY KEY,
         email VARCHAR(150) NOT NULL,
         botName VARCHAR(150) NOT NULL,
-        chats JSONB NOT NULL,
+        chats JSONB NOT NU
+        LL,
         created date DEFAULT CURRENT_TIMESTAMP
     )
 """
