@@ -438,7 +438,7 @@ def api_chat():
             chain[botName][auth_email]({"input_documents": docs, "human_input": query}, return_only_outputs=True)
             print(cb)
 
-        print("memory = ",chain[botName][auth_email].memory.buffer)
+        # print("memory = ",chain[botName][auth_email].memory.buffer)
 
         new_connects = user_connect['connects']  - 1
 
