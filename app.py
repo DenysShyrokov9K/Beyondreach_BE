@@ -435,13 +435,12 @@ def api_chat():
         print('chain==', chain[botName][auth_email])
         with get_openai_callback() as cb:
             docs = docsearch.similarity_search(query)
-            chain_func = eval(str(chain[botName][auth_email]))
-            chain_func({"input_documents": docs, "human_input": query}, return_only_outputs=True)
+            chain[botName][auth_email]({"input_documents": docs, "human_input": query}, return_only_outputs=True)
             print(cb)
 
         # print("memory = ",chain[botName][auth_email].memory.buffer)
 
-        new_connects = user_connect['connects']  - 1
+        new_connects = user_connect['connects']  - 1 
 
         cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
 
@@ -469,6 +468,7 @@ def api_chat():
         else:
             chat_content = chat['chats']
             chat_content.append(newMessage)
+            print(chat_content)
             updated_json_data_string = json.dumps(chat_content)
             cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botName = %s",
                         (updated_json_data_string, email, botName))
