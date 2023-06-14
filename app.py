@@ -468,7 +468,6 @@ def api_chat():
         else:
             chat_content = chat['chats']
             chat_content.append(newMessage)
-            print(chat_content)
             updated_json_data_string = json.dumps(chat_content)
             cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botName = %s",
                         (updated_json_data_string, email, botName))
