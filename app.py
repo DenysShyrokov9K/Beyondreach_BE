@@ -432,7 +432,7 @@ def api_chat():
 
         if auth_email not in chain[botName]:
             chain[botName][auth_email] = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
-        print('chain==', str(chain[botName][auth_email]))
+        print('chain==', chain[botName][auth_email])
         with get_openai_callback() as cb:
             docs = docsearch.similarity_search(query)
             eval(str(chain[botName][auth_email]))({"input_documents": docs, "human_input": query}, return_only_outputs=True)
