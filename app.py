@@ -369,6 +369,7 @@ def api_chat():
         print(f'data/ai-profiles/{botName}/')
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
+        print("documents = ", documents)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=30)
 
