@@ -453,13 +453,13 @@ def api_chat():
 
         cur = connection.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            'SELECT * FROM chats WHERE email = %s AND botName = %s', (email, botName,))
+            'SELECT * FROM chats WHERE email = %s AND botname = %s', (email, botName,))
         chat = cur.fetchone()
         print("chat = ", chat)
         if chat is None:            
             updated_json_data_string = json.dumps([newMessage])
             print(updated_json_data_string)
-            cur.execute('INSERT INTO chats(email, botName, chats) VALUES (%s, %s, %s) RETURNING *',
+            cur.execute('INSERT INTO chats(email, botname, chats) VALUES (%s, %s, %s) RETURNING *',
                         (email, botName, updated_json_data_string))
             newChat = cur.fetchone()
             print("newChat=", newChat)
@@ -468,7 +468,7 @@ def api_chat():
             chat_content.append(newMessage)
             print(chat_content)
             updated_json_data_string = json.dumps(chat_content)
-            cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botName = %s",
+            cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botname = %s",
                         (updated_json_data_string, email, botName))
         connection.commit()
         cur.close()
@@ -503,7 +503,8 @@ def api_getChatInfos():
         connection = get_connection()
         cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
 
-        cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName))
+        # cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName,))
+        cursor.execute('SELECT * FROM chats WHERE email = %s AND botname = %s ', (email,botName, ))
         chat = cursor.fetchone()
         print("chats = ", chat)
         connection.commit()
@@ -515,6 +516,46 @@ def api_getChatInfos():
     except Exception as e:
         print('Error: '+ str(e))
         return jsonify({'message': 'chat does not exist'}), 404
+
+@app.post('/api/reset')
+def reset():
+    requestInfo = request.get_json()
+    auth_email = requestInfo['email']
+    botName = requestInfo['botName']
+
+    print('botName = ', botName)
+
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+        
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+        # cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName,))
+        cursor.execute('SELECT * FROM chats WHERE email = %s AND botname = %s ', (email,botName, ))
+        chat = cursor.fetchone()
+        print("chats = ", chat)
+        
+        if chat is None:
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'message': "Chats does not exist", "status": True}), 200
+        cursor.execute('DELETE FROM chats WHERE email = %s AND botname = %s', (email, botName))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'message': "Chats delete success", "status": True}), 200
+    except Exception as e:
+        return jsonify({'message': 'Bad request', 'status': True}), 404
 
 def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
@@ -598,6 +639,7 @@ def verify_token(token):
 
     except:
         return jsonify({'message': 'Email already exist'}), 404
+
 
 # Serve REACT static files
 @app.route('/', defaults={'path': ''})
