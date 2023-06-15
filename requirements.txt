@@ -1,5 +1,6 @@
 Flask==2.3.2
 Flask-Cors==3.0.10
+psycopg2==2.9.6
 PyJWT==2.7.0
 langchain==0.0.180
 stripe==5.4.0
