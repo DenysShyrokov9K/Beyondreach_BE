@@ -5,3 +5,4 @@ PyJWT==2.7.0
 langchain==0.0.180
 stripe==5.4.0
 sendgrid==6.10.0
+gunicorn==19.7.1
