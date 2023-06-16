@@ -51,3 +51,13 @@ query = """
         created DATE DEFAULT CURRENT_TIMESTAMP
     );
 """
+
+query = """
+    CREATE TABLE botchain (
+        id SERIAL PRIMARY KEY,
+        botname VARCHAR(150) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        chain BYTEA,
+        created DATE DEFAULT CURRENT_TIMESTAMP
+    );
+"""

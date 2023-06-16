@@ -26,6 +26,7 @@ from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationSummaryBufferMemory
 import json
+import pickle
 
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -358,8 +359,6 @@ def api_getConnectInfo():
     except: 
         return jsonify({'message': 'Email does not exist'}), 404
 
-chain = {}
-
 @app.post('/api/chat')
 def api_chat():
     requestInfo = request.get_json()
@@ -391,7 +390,6 @@ def api_chat():
         print(f'data/ai-profiles/{botName}/')
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
-        print("documents = ", documents)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=30)
 
@@ -448,26 +446,39 @@ def api_chat():
         
         memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=2000, memory_key="chat_history", input_key="human_input")
 
-        if botName not in chain:
-            chain[botName] = {}
+        cursor.execute(
+            'SELECT * FROM botchain WHERE botname = %s AND email = %s', (botName, email,))
+        chain = cursor.fetchone()
+        print("chain ==", chain)
+        connection.commit()
 
-        if auth_email not in chain[botName]:
-            chain[botName][auth_email] = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
-        print('chain==', chain[botName][auth_email])
+        if chain is None:
+            conversation_chain = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
+        else:
+            chain_memory = chain['chain']
+            conversation_chain = pickle.loads(bytes(chain_memory))
+
+        print('chain==',  conversation_chain)
         with get_openai_callback() as cb:
             docs = docsearch.similarity_search(query)
-            chain[botName][auth_email]({"input_documents": docs, "human_input": query}, return_only_outputs=True)
+            conversation_chain({"input_documents": docs, "human_input": query}, return_only_outputs=True)
             print(cb)
 
-        # print("memory = ",chain[botName][auth_email].memory.buffer)
+        text = conversation_chain.memory.buffer[-1].content
+
+        new_chain = pickle.dumps(conversation_chain)
+        if chain is None:
+            cursor.execute('INSERT INTO botchain(email, botname, chain) VALUES (%s, %s, %s) RETURNING *',
+                        (email, botName, new_chain))
+        else:
+            cursor.execute('UPDATE botchain SET chain = %s WHERE email = %s AND botname = %s', (new_chain, email, botName, ))
+        connection.commit()
 
         new_connects = user_connect['connects']  - 1 
 
         cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
 
         connection.commit()
-
-        text = chain[botName][auth_email].memory.buffer[-1].content
 
         newMessage = {
             "question": query,
@@ -624,7 +635,6 @@ def verify_google_token(token):
     except ValueError:
         # Handle invalid token error
         return None
-
 
 @app.post('/api/likeChatbot')
 def like_chatBot():
