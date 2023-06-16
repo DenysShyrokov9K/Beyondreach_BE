@@ -339,7 +339,6 @@ chain = {}
 
 @app.post('/api/chat')
 def api_chat():
-
     requestInfo = request.get_json()
     query = requestInfo['query']   
     auth_email = requestInfo['email']
@@ -471,6 +470,11 @@ def api_chat():
             updated_json_data_string = json.dumps(chat_content)
             cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botname = %s",
                         (updated_json_data_string, email, botName))
+        cursor.execute('SELECT * FROM chatbot WHERE botname = %s', (botName, ))
+        chatbot = cursor.fetchone()
+        messages = chatbot['messages'] + 2
+        cursor.execute('UPDATE chatbot SET messages = %s WHERE botname = %s', (messages, botName,))
+        
         connection.commit()
         cur.close()
         connection.close()
@@ -481,6 +485,20 @@ def api_chat():
         return jsonify({'message': "Error message"}), 404
     except:
         return jsonify({'message': "Error message"}), 404
+
+@app.post('/api/chatBot')
+def api_chatBot():
+    connection = get_connection()
+    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+    # cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName,))
+    cursor.execute('SELECT * FROM chatbot ', ())
+    chats = cursor.fetchall()
+    print("chats = ", chats)
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return chats
 
 @app.post('/api/getChatInfos')
 def api_getChatInfos():
@@ -556,10 +574,54 @@ def reset():
         connection.close()
         return jsonify({'message': "Chats delete success", "status": True}), 200
     except Exception as e:
-        return jsonify({'message': 'Bad request', 'status': True}), 404
+        return jsonify({'message': 'Bad request', 'status': False}), 404
 
 def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
+
+@app.post('/api/likeChatbot')
+def like_chatBot():
+    requestInfo = request.get_json()
+    auth_email = requestInfo['email']
+    botName = requestInfo['botName']
+
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+        
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+        # cursor.execute('SELECT * FROM chats WHERE email = %s AND botName = %s ', (email,botName,))
+        cursor.execute('SELECT * FROM chatbot WHERE botname = %s ', (botName, ))
+        chat = cursor.fetchone()
+        print("chats = ", chat)
+        likes = chat['likes']
+        if likes is None:
+            likes = [email]
+            cursor.execute('UPDATE chatbot SET likes = %s WHERE botname = %s', (likes, botName, ))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return jsonify({'message': "Success", "status": True}), 200
+        if email in likes:
+            return jsonify({'message': "You already vote", "status": False}), 404 
+        likes.append(email)
+        cursor.execute('UPDATE chatbot SET likes = %s WHERE botname = %s', (likes, botName, ))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'message': "Success", "status": True}), 200
+    except Exception as e:
+        print("error:", str(e))
+        return jsonify({'message': 'Bad request', 'status': False}), 404
 
 @app.post('/api/sendVerifyEmail')
 def api_sendVerifyEmail():
@@ -641,12 +703,10 @@ def verify_token(token):
     except:
         return jsonify({'message': 'Email already exist'}), 404
 
-
 # Serve REACT static files
 @app.route('/', methods=['GET'])
 def run():
     return 'server is running'
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000,debug=True, threaded=True)
