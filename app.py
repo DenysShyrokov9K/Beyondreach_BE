@@ -8,6 +8,8 @@ import stripe
 import os
 import re
 from datetime import datetime, timedelta
+import base64
+import urllib.parse
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings.cohere import CohereEmbeddings
@@ -181,32 +183,52 @@ def api_auth_login():
 def api_auth_googleLogin():
     requestInfo = request.get_json()
     email = requestInfo['email']
+    credential = requestInfo['credential']
 
-    if email == '':
+    if email == '' or credential == '':
         return jsonify({'message': 'Email is required'}), 404
     
     else:
-        connection = get_connection()
-        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-        
         try:
-            cursor.execute('SELECT * FROM users WHERE email = %s AND password = %s', (email,create_hash('rmeosmsdjajslrmeosmsdjajsl') ))
+            responsePayload = decode_jwt_response(credential)
+            if responsePayload['email'] != email:
+                    return jsonify({'message': 'Bad request'}), 404
+            connection = get_connection()
+            cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+            cursor.execute('SELECT * FROM users WHERE email = %s', (email, ))
             user = cursor.fetchone()
 
+            if user is not None:
+                payload = {
+                'email': email
+                }
+                token = jwt.encode(payload, 'secret', algorithm='HS256')
+                return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
+        
+            cursor.execute('INSERT INTO users(email,password) VALUES (%s, %s) RETURNING *',
+                    (email, create_hash('rmeosmsdjajslrmeosmsdjajsl')))
+            new_created_user = cursor.fetchone()
+            print(new_created_user)
+
             connection.commit()
-            cursor.close()
-            connection.close()
-            print('user = ', user)
-            if user is None:
-                return jsonify({'message': 'Email does not exist'}), 404
-            
+        
             payload = {
                 'email': email
             }
             token = jwt.encode(payload, 'secret', algorithm='HS256')
+
+            cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
+                        (email, 10))
+            new_connect_user = cursor.fetchone()
+            print(new_connect_user)
+            connection.commit()
+            cursor.close()
+            connection.close()
             return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
-        except: 
-            return jsonify({'message': 'Email does not exist'}), 404
+
+        except:
+            return jsonify({'message': 'Email already exist'}), 404
 
 @app.post('/api/auth/loginCheck')
 def api_loginCheck():
@@ -578,6 +600,15 @@ def reset():
 
 def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
+
+def decode_jwt_response(token):
+    base64Url = token.split(".")[1]
+    base64_ = base64Url.replace("-","+").replace("_","/")
+    jsonPayload = urllib.parse.unquote(
+        base64.b64decode(base64_.encode()).hex()
+    )
+    
+    return json.loads(jsonPayload)
 
 @app.post('/api/likeChatbot')
 def like_chatBot():

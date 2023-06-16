@@ -35,7 +35,7 @@ query = """
     CREATE TABLE chats (
         id SERIAL PRIMARY KEY,
         email VARCHAR(150) NOT NULL,
-        botName VARCHAR(150) NOT NULL,
+        botname VARCHAR(150) NOT NULL,
         chats JSONB NOT NU
         LL,
         created date DEFAULT CURRENT_TIMESTAMP
@@ -45,7 +45,7 @@ query = """
 query = """
     CREATE TABLE chatbot (
         id SERIAL PRIMARY KEY,
-        botName VARCHAR(150) NOT NULL,
+        botname VARCHAR(150) NOT NULL,
         likes VARCHAR[],
         messages INT DEFAULT 0,
         created DATE DEFAULT CURRENT_TIMESTAMP
