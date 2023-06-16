@@ -8,8 +8,8 @@ import stripe
 import os
 import re
 from datetime import datetime, timedelta
-import base64
-import urllib.parse
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings.cohere import CohereEmbeddings
@@ -190,7 +190,8 @@ def api_auth_googleLogin():
     
     else:
         try:
-            responsePayload = decode_jwt_response(credential)
+            responsePayload = verify_google_token(credential)
+            print(responsePayload)
             if responsePayload['email'] != email:
                     return jsonify({'message': 'Bad request'}), 404
             connection = get_connection()
@@ -601,14 +602,29 @@ def reset():
 def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
-def decode_jwt_response(token):
-    base64Url = token.split(".")[1]
-    base64_ = base64Url.replace("-","+").replace("_","/")
-    jsonPayload = urllib.parse.unquote(
-        base64.b64decode(base64_.encode()).hex()
-    )
-    
-    return json.loads(jsonPayload)
+def verify_google_token(token):
+    # Specify the client ID of the Google API Console project that the credential is from
+    CLIENT_ID = '474698007274-p876g5lj90u8mse5uptm6kukvavg2bnr.apps.googleusercontent.com'
+
+    try:
+        # Verify and decode the token
+        decoded_token = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
+
+        # Extract information from the decoded token
+        user_id = decoded_token['sub']
+        user_email = decoded_token['email']
+        user_name = decoded_token['name']
+        print("email == ", user_email)
+        # Return a dictionary containing the user information
+        return {
+            'id': user_id,
+            'email': user_email,
+            'name': user_name
+        }
+    except ValueError:
+        # Handle invalid token error
+        return None
+
 
 @app.post('/api/likeChatbot')
 def like_chatBot():
