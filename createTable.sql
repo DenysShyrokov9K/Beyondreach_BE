@@ -41,3 +41,13 @@ query = """
         created date DEFAULT CURRENT_TIMESTAMP
     )
 """
+
+query = """
+    CREATE TABLE chatbot (
+        id SERIAL PRIMARY KEY,
+        botName VARCHAR(150) NOT NULL,
+        likes VARCHAR[],
+        messages INT DEFAULT 0,
+        created DATE DEFAULT CURRENT_TIMESTAMP
+    );
+"""
