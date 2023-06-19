@@ -366,9 +366,10 @@ def api_chat():
     auth_email = requestInfo['email']
     botName = requestInfo['botName']
     botName = requestInfo['botName']
-    nsfw = requestInfo['botName']
+    nsfw = requestInfo['nsfw']
 
     print("botName = ",botName)
+    print("nsfw = ", nsfw)
     headers = request.headers
     bearer = headers.get('Authorization')
     try:
@@ -709,10 +710,12 @@ def api_chat():
             prompt = PromptTemplate(
             input_variables=["chat_history", "human_input", "context"], 
             template=nsfw_template[botName])
+            print("template = ", nsfw_template[botName])
         else: 
             prompt = PromptTemplate(
             input_variables=["chat_history", "human_input", "context"], 
             template=sfw_template[botName])
+            print("template = ", sfw_template[botName])
 
         llm = OpenAI(model_name='gpt-3.5-turbo',
                 temperature=0.2,
