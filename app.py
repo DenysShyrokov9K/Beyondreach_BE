@@ -883,6 +883,9 @@ def reset():
             return jsonify({'message': "Chats does not exist", "status": True}), 200
         cursor.execute('DELETE FROM chats WHERE email = %s AND botname = %s', (email, botName))
         connection.commit()
+
+        cursor.execute('DELETE FROM botchain WHERE email = %s AND botname = %s', (email, botName))
+        connection.commit()
         cursor.close()
         connection.close()
         return jsonify({'message': "Chats delete success", "status": True}), 200
