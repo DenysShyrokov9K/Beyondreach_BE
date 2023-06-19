@@ -733,7 +733,8 @@ def api_chat():
             conversation_chain = load_qa_chain(llm=llm, chain_type="stuff", memory=memory, prompt=prompt)
         else:
             chain_memory = chain['chain']
-            conversation_chain = pickle.loads(bytes(chain_memory))
+            exist_conversation_chain = pickle.loads(bytes(chain_memory))
+            conversation_chain = load_qa_chain(llm=llm, chain_type="stuff", memory=exist_conversation_chain.memory, prompt=prompt)
 
         print('chain==',  conversation_chain)
         with get_openai_callback() as cb:
