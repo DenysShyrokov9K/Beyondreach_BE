@@ -890,6 +890,7 @@ def reset():
         connection.close()
         return jsonify({'message': "Chats delete success", "status": True}), 200
     except Exception as e:
+        print("error:", str(e))
         return jsonify({'message': 'Bad request', 'status': False}), 404
 
 def create_hash(text):
