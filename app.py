@@ -27,7 +27,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationSummaryBufferMemory
 import json
 import pickle
-
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -358,13 +357,36 @@ def api_getConnectInfo():
             return jsonify({'info': connectInfo}), 200
     except: 
         return jsonify({'message': 'Email does not exist'}), 404
+    
+
+array_current_image_index = {}
+
+def send_random_image(directory, botName, email):
+    if botName not in array_current_image_index:
+        array_current_image_index[botName] = {}
+    if email not in array_current_image_index[botName]:
+        array_current_image_index[botName][email] = 0
+    current_image_index = array_current_image_index[botName][email]  # We need to declare the variable as global to modify it
+    array_current_image_index[botName][email] += 1
+    images = sorted(os.listdir(directory))  # Sort the images by name
+    if current_image_index >= len(images):  # If we've sent all images
+        print("All images have been sent.")
+        return None
+    image_filename = images[current_image_index]  # Get the next image
+    current_image_index += 1  # Update the index
+    image_url = f'https://beyondreach.onrender.com/{directory}/{image_filename}'
+    return image_url 
+
+@app.route('/data/ai-profiles/<botName>/images/<image_name>')
+def serve_image(botName,image_name):
+    directory = f'data/ai-profiles/{botName}/images'
+    return send_from_directory(directory, image_name)
 
 @app.post('/api/chat')
 def api_chat():
     requestInfo = request.get_json()
     query = requestInfo['query']   
     auth_email = requestInfo['email']
-    botName = requestInfo['botName']
     botName = requestInfo['botName']
     nsfw = requestInfo['nsfw']
 
@@ -391,6 +413,9 @@ def api_chat():
             return jsonify({'message': 'Connects is noth'}), 404
         
         print(f'data/ai-profiles/{botName}/')
+
+        image_dir = f'data/ai-profiles/{botName}/images'
+
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
         # Split and diveide text to prepare embeddings
@@ -816,13 +841,23 @@ def api_chat():
             conversation_chain = load_qa_chain(llm=llm, chain_type="stuff", memory=exist_conversation_chain.memory, prompt=prompt)
 
         print('chain==',  conversation_chain)
+        flag = 0
         with get_openai_callback() as cb:
-            docs = docsearch.similarity_search(query)
-            conversation_chain({"input_documents": docs, "human_input": query}, return_only_outputs=True)
-            print(cb)
-
-        text = conversation_chain.memory.buffer[-1].content
-
+            if (("send" in str(query).lower() and "picture" in str(query).lower()) or "nude" in str(query).lower()) and nsfw:
+                if user_connect['connects'] < 5:
+                    return jsonify({'message': "not enough credits"}), 404
+                image_url = send_random_image(image_dir, botName, email)
+                if image_url is None:
+                   text = "I don't have any more pictures right now"
+                else:
+                    text = f"<img src='{image_url}' alt='Random image'> Like what you see?"
+                    flag = 1
+            else:
+                docs = docsearch.similarity_search(query)
+                conversation_chain({"input_documents": docs, "human_input": query}, return_only_outputs=True)
+                text = conversation_chain.memory.buffer[-1].content
+            print("cb = ",cb)
+        print('text = ', text)
         new_chain = pickle.dumps(conversation_chain)
         if chain is None:
             cursor.execute('INSERT INTO botchain(email, botname, chain) VALUES (%s, %s, %s) RETURNING *',
@@ -830,8 +865,11 @@ def api_chat():
         else:
             cursor.execute('UPDATE botchain SET chain = %s WHERE email = %s AND botname = %s', (new_chain, email, botName, ))
         connection.commit()
-
-        new_connects = user_connect['connects']  - 1 
+        
+        if flag == 0:
+            new_connects = user_connect['connects']  - 1 
+        elif flag == 1:
+            new_connects = user_connect['connects']  - 5   
 
         cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
 
@@ -966,6 +1004,10 @@ def reset():
         connection.commit()
         cursor.close()
         connection.close()
+
+        if botName in array_current_image_index and email in array_current_image_index[botName]:
+            array_current_image_index[botName][email] = 0
+
         return jsonify({'message': "Chats delete success", "status": True}), 200
     except Exception as e:
         print("error:", str(e))
