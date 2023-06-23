@@ -843,7 +843,7 @@ def api_chat():
         print('chain==',  conversation_chain)
         flag = 0
         with get_openai_callback() as cb:
-            if (("send" in str(query).lower() and "picture" in str(query).lower()) or ("send pic" in str(query).lower()) or ("send photo" in str(query).lower()) or "nude" in str(query).lower()) and nsfw:
+            if (("send" in str(query).lower() and "picture" in str(query).lower()) or ("send" in str(query).lower() and "pic" in str(query).lower()) or ("send" in str(query).lower() and "photo" in str(query)) or "nude" in str(query).lower()) and nsfw:
                 if user_connect['connects'] < 5:
                     return jsonify({'message': "not enough credits"}), 404
                 image_url = send_random_image(image_dir, botName, email)
