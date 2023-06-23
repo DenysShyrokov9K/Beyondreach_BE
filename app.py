@@ -850,7 +850,7 @@ def api_chat():
                 if image_url is None:
                    text = "I don't have any more pictures right now"
                 else:
-                    text = f"<img src='{image_url}' alt='Random image'> Like what you see?"
+                    text = f"<img src='{image_url}' style='pointer-events: none; border-radius: 10px;' alt='Random image'>"
                     flag = 1
             else:
                 docs = docsearch.similarity_search(query)
