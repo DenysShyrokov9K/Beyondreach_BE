@@ -358,7 +358,6 @@ def api_getConnectInfo():
     except: 
         return jsonify({'message': 'Email does not exist'}), 404
     
-
 array_current_image_index = {}
 
 def send_random_image(directory, botName, email):
