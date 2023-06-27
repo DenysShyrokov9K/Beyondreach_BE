@@ -821,10 +821,9 @@ def api_chat():
             print("SFW")
 
         llm = OpenAI(model_name='gpt-3.5-turbo',
-                temperature=0.5,
-                max_tokens = 200)
+                temperature=0.5)
         
-        memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=2000, memory_key="chat_history", input_key="human_input")
+        memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=1500, memory_key="chat_history", input_key="human_input")
 
         cursor.execute(
             'SELECT * FROM botchain WHERE botname = %s AND email = %s', (botName, email,))
