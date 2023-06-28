@@ -809,7 +809,7 @@ def api_chat():
             print("SFW")
 
         llm = OpenAI(model_name='gpt-3.5-turbo',
-                temperature=0.5)
+                temperature=0)
         
         memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=1500, memory_key="chat_history", input_key="human_input")
 
