@@ -862,7 +862,7 @@ def api_chat():
         connection.commit()
 
         if (str(botName) + ":") in text.lower():
-            text = text.replace((str(botName).capitalize + ":"), "")
+            text = text.replace((str(botName).capitalize() + ":"), "")
 
         newMessage = {
             "question": query,
