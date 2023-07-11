@@ -59,92 +59,6 @@ stripe.api_key = environ.get('STRIPE_API_KEY')
 
 endpoint_secret = environ.get('END_POINT_SECRET')
 
-@app.post('/api/auth/register')
-def api_auth_register():
-    requestInfo = request.get_json()
-    email = requestInfo['email']
-    password = requestInfo['password']
-
-    if email == '' or password == '':
-        return jsonify({'message': 'Email or Password is required'}), 404
-
-
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-
-    try:
-        cursor.execute('SELECT * FROM users WHERE email = %s', (email, ))
-        user = cursor.fetchone()
-
-        if user is not None:
-            return jsonify({'message': 'Email is already exist'}), 404
-    
-        cursor.execute('INSERT INTO users(email,password) VALUES (%s, %s) RETURNING *',
-                    (email, create_hash(password)))
-        new_created_user = cursor.fetchone()
-        print(new_created_user)
-
-        connection.commit()
-        
-
-        payload = {
-            'email': email
-        }
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
-
-        cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                    (email, 20))
-        new_connect_user = cursor.fetchone()
-        print(new_connect_user)
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
-
-    except:
-        return jsonify({'message': 'Email already exist'}), 404
-
-@app.post('/api/auth/googleRegister')
-def api_auth_googleRegister():
-    requestInfo = request.get_json()
-    email = requestInfo['email']
-    if email == '':
-        return jsonify({'message': 'Email is required'}), 404
-    connection = get_connection()
-    cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
-
-    try:
-        cursor.execute('SELECT * FROM users WHERE email = %s', (email, ))
-        user = cursor.fetchone()
-
-        if user is not None:
-            return jsonify({'message': 'Email is already exist'}), 404
-    
-        cursor.execute('INSERT INTO users(email,password) VALUES (%s, %s) RETURNING *',
-                    (email, create_hash("rmeosmsdjajslrmeosmsdjajsl")))
-        new_created_user = cursor.fetchone()
-        print(new_created_user)
-
-        connection.commit()
-        
-
-        payload = {
-            'email': email
-        }
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
-
-        cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                    (email, 20))
-        new_connect_user = cursor.fetchone()
-        print(new_connect_user)
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return jsonify({'token': 'Bearer: '+token, 'email': email}), 200
-
-    except:
-        return jsonify({'message': 'Email already exist'}), 404
-    
 @app.post('/api/auth/login')
 def api_auth_login():
     requestInfo = request.get_json()
@@ -220,7 +134,7 @@ def api_auth_googleLogin():
             token = jwt.encode(payload, 'secret', algorithm='HS256')
 
             cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                        (email, 5))
+                        (email, 15))
             new_connect_user = cursor.fetchone()
             print(new_connect_user)
             connection.commit()
@@ -1129,7 +1043,7 @@ def verify_token(token):
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
         cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                    (email, 5))
+                    (email, 15))
         new_connect_user = cursor.fetchone()
         print(new_connect_user)
         connection.commit()
