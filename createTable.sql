@@ -53,6 +53,15 @@ query = """
 """
 
 query = """
+    CREATE TABLE addresses(
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(150) NOT NULL,
+        address VARCHAR(150) NOT NULL,
+        created DATE DEFAULT CURRENT_TIMESTAMP
+    );
+"""
+
+query = """
     CREATE TABLE botchain (
         id SERIAL PRIMARY KEY,
         botname VARCHAR(150) NOT NULL,

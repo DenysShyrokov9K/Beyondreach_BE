@@ -1140,6 +1140,89 @@ def verify_token(token):
     except:
         return jsonify({'message': 'Email already exist'}), 404
 
+@app.post('/api/addAddress')
+def addAddress():
+    requestInfo = request.get_json()
+    auth_email = requestInfo['email']
+    address = requestInfo['address']
+
+    print("auth_email = ", auth_email)
+    print("address = ", address)
+
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    try:
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+        
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+        cursor.execute('SELECT * FROM addresses WHERE email = %s AND address = %s', (email, str(address)))
+        user = cursor.fetchone()
+
+        if user is not None:
+            return jsonify({'message': 'Alread exist'}), 200
+
+        cursor.execute('INSERT INTO addresses(email,address) VALUES (%s, %s) RETURNING *',
+                    (email, str(address), ))
+        new_created_address = cursor.fetchone()
+        print(new_created_address)
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'message': 'Added success'}), 200
+
+    except Exception as e:
+        print("error:", str(e))
+        return jsonify({'message': 'Bad request'}), 404
+
+@app.post('/api/addCredits')
+def addCredits():
+    requestInfo = request.get_json()
+    auth_email = requestInfo['email']
+    address = requestInfo['address']
+    credits = requestInfo['credits']
+
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    try:
+        connection = get_connection()
+        cursor = connection.cursor(cursor_factory=extras.RealDictCursor)
+
+        token = bearer.split()[1]
+        decoded = jwt.decode(token, 'secret', algorithms="HS256")
+
+        email = decoded['email']
+
+        if(email != auth_email):
+            return jsonify({'message': 'Authrization is faild'}), 404
+        
+        cursor.execute('SELECT * FROM connects WHERE email = %s ', (email,))
+
+        connect = cursor.fetchone()
+
+        connects = connect['connects']
+
+        new_connects = connects + credits
+
+        cursor.execute('UPDATE connects SET customer_id = %s, connects = %s WHERE email = %s', (address, new_connects, email,))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'message': 'Added successfuly'}), 200
+    except Exception as e:
+        print("error:", str(e))
+        return jsonify({'message': 'Bad request'}), 404
+
 # Serve REACT static files
 @app.route('/', methods=['GET'])
 def run():
