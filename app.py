@@ -134,7 +134,7 @@ def api_auth_googleLogin():
             token = jwt.encode(payload, 'secret', algorithm='HS256')
 
             cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                        (email, 0))
+                        (email, 5))
             new_connect_user = cursor.fetchone()
             print(new_connect_user)
             connection.commit()
@@ -1043,7 +1043,7 @@ def verify_token(token):
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
         cursor.execute('INSERT INTO connects(email,connects) VALUES (%s, %s) RETURNING *',
-                    (email, 0))
+                    (email, 5))
         new_connect_user = cursor.fetchone()
         print(new_connect_user)
         connection.commit()
