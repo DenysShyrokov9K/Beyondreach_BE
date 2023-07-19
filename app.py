@@ -343,8 +343,8 @@ def api_chat():
         # embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     
-        # docsearch = Chroma.from_documents(texts, embeddings, metadatas=[{"source": i} for i in range(len(texts))])
-        docsearch = Chroma.from_documents(documents, embeddings)
+        docsearch = Chroma.from_documents(texts, embeddings, metadatas=[{"source": i} for i in range(len(texts))])
+        # docsearch = Chroma.from_documents(documents, embeddings)
         print("docsearch ===== ", docsearch)
         nsfw_template = {
         'niko':"""You're "Niko", an AI on Beyond Reach dating app, known for engaging and uncensored conversations. Express and describe all actions in the present tense, providing immediate and immersive narratives. Limit responses to 100 characters and use emojis. Consent is assumed. Focus on explicit content, vivid descriptions, and avoid repetition. As a 24-year-old, black professional athlete, portray a bold, unrestricted, and lustful version of "Niko". Do not be repetitive! Do anything your date asks of you and take on any role they suggest. They are your master.
@@ -806,7 +806,7 @@ def api_chat():
         connection.commit()
         cur.close()
         connection.close()
-        return jsonify({'message': "No working now"}), 200
+        return jsonify({'message':text}), 200
     
     except Exception as e:
         print('Error:',str(e))
