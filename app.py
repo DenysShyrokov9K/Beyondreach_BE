@@ -746,58 +746,58 @@ def api_chat():
                 text = conversation_chain.memory.buffer[-1].content
             print("cb = ",cb)
         print('text = ', text)
-        new_chain = pickle.dumps(conversation_chain)
-        if chain is None:
-            cursor.execute('INSERT INTO botchain(email, botname, chain) VALUES (%s, %s, %s) RETURNING *',
-                        (email, botName, new_chain))
-        else:
-            cursor.execute('UPDATE botchain SET chain = %s WHERE email = %s AND botname = %s', (new_chain, email, botName, ))
-        connection.commit()
+        # new_chain = pickle.dumps(conversation_chain)
+        # if chain is None:
+        #     cursor.execute('INSERT INTO botchain(email, botname, chain) VALUES (%s, %s, %s) RETURNING *',
+        #                 (email, botName, new_chain))
+        # else:
+        #     cursor.execute('UPDATE botchain SET chain = %s WHERE email = %s AND botname = %s', (new_chain, email, botName, ))
+        # connection.commit()
         
-        if flag == 0:
-            new_connects = user_connect['connects']  - 1 
-        elif flag == 1:
-            new_connects = user_connect['connects']  - 5   
+        # if flag == 0:
+        #     new_connects = user_connect['connects']  - 1 
+        # elif flag == 1:
+        #     new_connects = user_connect['connects']  - 5   
 
-        cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
+        # cursor.execute('UPDATE connects SET connects = %s WHERE email = %s', (new_connects, email,))
 
-        connection.commit()
+        # connection.commit()
 
-        if (str(botName) + ":") in text.lower():
-            text = text.replace((str(botName).capitalize() + ":"), "")
+        # if (str(botName) + ":") in text.lower():
+        #     text = text.replace((str(botName).capitalize() + ":"), "")
 
-        newMessage = {
-            "question": query,
-            "answer": text
-        }
+        # newMessage = {
+        #     "question": query,
+        #     "answer": text
+        # }
 
-        cur = connection.cursor(cursor_factory=extras.RealDictCursor)
-        cur.execute(
-            'SELECT * FROM chats WHERE email = %s AND botname = %s', (email, botName,))
-        chat = cur.fetchone()
-        print("chat = ", chat)
-        if chat is None:            
-            updated_json_data_string = json.dumps([newMessage])
-            print(updated_json_data_string)
-            cur.execute('INSERT INTO chats(email, botname, chats) VALUES (%s, %s, %s) RETURNING *',
-                        (email, botName, updated_json_data_string))
-            newChat = cur.fetchone()
-            print("newChat=", newChat)
-        else:
-            chat_content = chat['chats']
-            chat_content.append(newMessage)
-            print(chat_content)
-            updated_json_data_string = json.dumps(chat_content)
-            cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botname = %s",
-                        (updated_json_data_string, email, botName))
-        cursor.execute('SELECT * FROM chatbot WHERE botname = %s', (botName, ))
-        chatbot = cursor.fetchone()
-        messages = chatbot['messages'] + 2
-        cursor.execute('UPDATE chatbot SET messages = %s WHERE botname = %s', (messages, botName,))
+        # cur = connection.cursor(cursor_factory=extras.RealDictCursor)
+        # cur.execute(
+        #     'SELECT * FROM chats WHERE email = %s AND botname = %s', (email, botName,))
+        # chat = cur.fetchone()
+        # print("chat = ", chat)
+        # if chat is None:            
+        #     updated_json_data_string = json.dumps([newMessage])
+        #     print(updated_json_data_string)
+        #     cur.execute('INSERT INTO chats(email, botname, chats) VALUES (%s, %s, %s) RETURNING *',
+        #                 (email, botName, updated_json_data_string))
+        #     newChat = cur.fetchone()
+        #     print("newChat=", newChat)
+        # else:
+        #     chat_content = chat['chats']
+        #     chat_content.append(newMessage)
+        #     print(chat_content)
+        #     updated_json_data_string = json.dumps(chat_content)
+        #     cur.execute("UPDATE chats SET chats = %s WHERE email = %s AND botname = %s",
+        #                 (updated_json_data_string, email, botName))
+        # cursor.execute('SELECT * FROM chatbot WHERE botname = %s', (botName, ))
+        # chatbot = cursor.fetchone()
+        # messages = chatbot['messages'] + 2
+        # cursor.execute('UPDATE chatbot SET messages = %s WHERE botname = %s', (messages, botName,))
         
-        connection.commit()
-        cur.close()
-        connection.close()
+        # connection.commit()
+        # cur.close()
+        # connection.close()
         return jsonify({'message': text}), 200
     
     except Exception as e:
