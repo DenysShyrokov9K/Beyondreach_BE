@@ -13,4 +13,4 @@ openai==0.27.7
 sentence-transformers==2.2.2
 pysqlite3-binary
 tiktoken
-chromadb
+chromadb==0.3.29
