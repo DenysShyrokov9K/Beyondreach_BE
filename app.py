@@ -332,12 +332,11 @@ def api_chat():
         loader = DirectoryLoader(f'data/ai-profiles/{botName}/', glob="./*.pdf", loader_cls=PyPDFLoader)
         documents = loader.load()
 
-        print("documents ===== ", documents)
         # Split and diveide text to prepare embeddings
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=30)
 
         texts = text_splitter.split_documents(documents)
-
+        print("texts ===== ", texts)
         embeddings = OpenAIEmbeddings()
         docsearch = Chroma.from_documents(texts, embeddings, metadatas=[{"source": i} for i in range(len(texts))])
         nsfw_template = {
@@ -716,7 +715,7 @@ def api_chat():
                 temperature=0)
         
         memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=1500, memory_key="chat_history", input_key="human_input")
-
+        print("memory =====", memory)
         cursor.execute(
             'SELECT * FROM botchain WHERE botname = %s AND email = %s', (botName, email,))
         chain = cursor.fetchone()
