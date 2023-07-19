@@ -795,9 +795,9 @@ def api_chat():
         # messages = chatbot['messages'] + 2
         # cursor.execute('UPDATE chatbot SET messages = %s WHERE botname = %s', (messages, botName,))
         
-        # connection.commit()
+        connection.commit()
         # cur.close()
-        # connection.close()
+        connection.close()
         return jsonify({'message': text}), 200
     
     except Exception as e:
