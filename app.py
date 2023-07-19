@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timedelta
 from google.oauth2 import id_token
 from google.auth.transport import requests
+import sqlite3
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.embeddings.cohere import CohereEmbeddings
