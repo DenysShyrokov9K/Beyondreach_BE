@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, jsonify, request, send_from_directory, redirect, flash, url_for
 from flask_cors import CORS
 import hashlib
@@ -9,7 +10,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_requests
 import sqlite3
 
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -916,8 +917,6 @@ def create_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
 def verify_google_token(token):
-    # Specify the client ID of the Google API Console project that the credential is from
-    CLIENT_ID = '474698007274-p876g5lj90u8mse5uptm6kukvavg2bnr.apps.googleusercontent.com'
 
     try:
         # Verify and decode the token
