@@ -921,20 +921,24 @@ def verify_google_token(token):
 
     try:
         # Verify and decode the token
-        decoded_token = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
+        # decoded_token = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+        url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        headers = {'Authorization': f'Bearer {token}'}
 
-        # Extract information from the decoded token
-        user_id = decoded_token['sub']
-        user_email = decoded_token['email']
-        user_name = decoded_token['name']
-        print("email == ", user_email)
-        # Return a dictionary containing the user information
-        return {
-            'id': user_id,
-            'email': user_email,
-            'name': user_name
-        }
-    except ValueError:
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            user_info = response.json()
+            print("user_info = ", user_info)
+            return user_info
+        else:
+            print(f"Error: {response.status_code}")
+            return None
+
+        # Assuming you have the access token in a variable called 'access_token'
+        
+    except Exception as e:
+        print("error:", str(e))
         # Handle invalid token error
         return None
 
