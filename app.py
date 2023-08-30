@@ -774,8 +774,6 @@ def api_chat():
             headers={"HTTP-Referer": "http://localhost:3000"},
         )
 
-        openai.ChatCompletion()
-
         print('open ai resp:', response)
         # response = json.loads(response)
         msg = response["choices"][0]["message"]['content']
