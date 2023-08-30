@@ -748,6 +748,22 @@ def api_chat():
         #              openai_api_key=environ.get('OPENAI_ROUTER_KEY'),
         #              temperature=0)
 
+        cur = connection.cursor(cursor_factory=extras.RealDictCursor)
+        cur.execute(
+            'SELECT * FROM chats WHERE email = %s AND botname = %s', (email, botName,))
+        chat = cur.fetchone()
+        print("chat = ", chat)
+
+        if chat is not None:
+            modified = [
+                {'assistant': item['answer'], 'user': item['question']}
+                for item in chat['chats']
+            ]
+            context_prompt = context_prompt.replace(
+                '{chat_history}', str(modified))
+
+        print('prompt:', context_prompt)
+
         context_message = {"role": "assistant", "content": context_prompt}
         question_message = {"role": "user", "content": query}
 
@@ -757,6 +773,8 @@ def api_chat():
             messages=[context_message, question_message],
             headers={"HTTP-Referer": "http://localhost:3000"},
         )
+
+        openai.ChatCompletion()
 
         print('open ai resp:', response)
         # response = json.loads(response)
