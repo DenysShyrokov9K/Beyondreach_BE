@@ -752,9 +752,10 @@ def api_chat():
         question_message = {"role": "user", "content": query}
 
         response = openai.ChatCompletion.create(
-            model="openai/gpt-3.5-turbo",
+            # model="openai/gpt-3.5-turbo",
+            model="gryphe/mythomax-L2-13b",
             messages=[context_message, question_message],
-            headers={"HTTP-Referer": "https://beyondreach.ai/"},
+            headers={"HTTP-Referer": "http://localhost:3000"},
         )
 
         print('open ai resp:', response)
